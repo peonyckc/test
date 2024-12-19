@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Globetrotting Red Panda</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f0f8ff;
+    }
+    #game-container {
+      position: relative;
+      width: 90vw;
+      height: 60vh;
+      margin: 20px auto;
+      border: 2px solid #333;
+      background-color: #e0ffe0;
+      overflow: hidden;
+    }
+    .panda {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      background-image: url('https://upload.wikimedia.org/wikipedia/commons/e/e8/Red_Panda_full_body.JPG');
+      background-size: cover;
+      z-index: 2;
+    }
+    .apple {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      background-color: red;
+      border-radius: 50%;
+      z-index: 1;
+    }
+    #scoreboard {
+      margin-top: 10px;
+      font-size: 18px;
+    }
+    #welcome-screen {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      background-color: rgba(0, 0, 0, 0.7);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 3;
+    }
+    #welcome-screen button {
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #welcome-screen button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <div id="welcome-screen">
+      <h1>Welcome Yan!</h1>
+      <p>Are you ready for globetrotting?</p>
+      <button id="start-btn">Start</button>
+    </div>
+    <div class="panda" id="panda"></div>
+    <div class="apple" id="apple"></div>
+  </div>
+  <div id="scoreboard">
+    <p>Score: <span id="score">0</span> | Time: <span id="timer">30</span>s | Country: <span id="country">China</span></p>
+  </div>
+  <script>
+    const gameContainer = document.getElementById("game-container");
+    const panda = document.getElementById("panda");
+    const apple = document.getElementById("apple");
+    const scoreDisplay = document.getElementById("score");
+    const timerDisplay = document.getElementById("timer");
+    const countryDisplay = document.getElementById("country");
+    const welcomeScreen = document.getElementById("welcome-screen");
+    const startBtn = document.getElementById("start-btn");
+
+    // Game variables
+    let score = 0;
+    let timer = 30;
+    let currentCountryIndex = 0;
+    const countries = ["China", "Japan", "France", "USA", "Brazil"];
+    const goal = 5; // Score needed to move to the next country
+    let gameInterval;
+
+    // Red panda initial position
+    let pandaX = 0;
+    let pandaY = 0;
+
+    // Start game
+    startBtn.addEventListener("click", () => {
+      welcomeScreen.style.display = "none";
+      startGame();
+    });
+
+    function startGame() {
+      resetGame();
+      gameInterval = setInterval(() => {
+        timer--;
+        timerDisplay.textContent = timer;
+        if (timer <= 0) {
+          endGame();
+        }
+      }, 1000);
+    }
+
+    function resetGame() {
+      score = 0;
+      timer = 30;
+      pandaX = 0;
+      pandaY = 0;
+      updatePandaPosition();
+      moveApple();
+      scoreDisplay.textContent = score;
+      timerDisplay.textContent = timer;
+      countryDisplay.textContent = countries[currentCountryIndex];
+    }
+
+    function endGame() {
+      clearInterval(gameInterval);
+      alert(Time's up! Your final score: ${score});
+      location.reload();
+    }
+
+    function moveApple() {
+      const appleX = Math.floor(Math.random() * (gameContainer.offsetWidth - 30));
+      const appleY = Math.floor(Math.random() * (gameContainer.offsetHeight - 30));
+      apple.style.left = ${appleX}px;
+      apple.style.top = ${appleY}px;
+    }
+
+    function updatePandaPosition() {
+      panda.style.left = ${pandaX}px;
+      panda.style.top = ${pandaY}px;
+    }
+
+    function checkCollision() {
+      const pandaRect = panda.getBoundingClientRect();
+      const appleRect = apple.getBoundingClientRect();
+      if (
+        pandaRect.left < appleRect.right &&
+        pandaRect.right > appleRect.left &&
+        pandaRect.top < appleRect.bottom &&
+        pandaRect.bottom > appleRect.top
+      ) {
+        score++;
+        scoreDisplay.textContent = score;
+        moveApple();
+        if (score >= goal) {
+          currentCountryIndex++;
+          if (currentCountryIndex >= countries.length) {
+            alert("Congratulations! You've visited all countries!");
+            location.reload();
+          } else {
+            alert(Welcome to ${countries[currentCountryIndex]}!);
+            resetGame();
+          }
+        }
+      }
+    }
+
+    // Key controls for moving the panda
+    document.addEventListener("keydown", (e) => {
+      const step = 10; // Move speed
+      if (e.key === "ArrowUp" && pandaY > 0) pandaY -= step;
+      if (e.key === "ArrowDown" && pandaY < gameContainer.offsetHeight - 50) pandaY += step;
+      if (e.key === "ArrowLeft" && pandaX > 0) pandaX -= step;
+      if (e.key === "ArrowRight" && pandaX < gameContainer.offsetWidth - 50) pandaX += step;
+      updatePandaPosition();
+      checkCollision();
+    });
+  </script>
+</body>
+</html>
